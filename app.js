@@ -19,7 +19,6 @@ let features = [];
 let map;
 let mapLayers;
 let addressMarker;
-const addressCache = new Map();
 let selectedIndex = null;
 let visible = [];
 let view = 'microareas';
@@ -58,29 +57,26 @@ async function fetchAddressJson(url, timeoutMs) {
   }
 }
 
-async function findAddresses(search, cacheKey) {
-  const cached = addressCache.get(cacheKey);
-  if (cached) return cached;
-
+async function findAddresses(search) {
   try {
-    const params = new URLSearchParams({ q: search, lat: '-25.3905', lon: '-51.4655', limit: '5', lang: 'default' });
-    const data = await fetchAddressJson(`https://photon.komoot.io/api/?${params}`, 7000);
-    if (!Array.isArray(data.features)) throw new Error('Resposta inválida do serviço de busca');
-    addressCache.set(cacheKey, data.features);
-    return data.features;
-  } catch (error) {
     // Geosearch results from Esri are displayed temporarily and are not cached.
     const params = new URLSearchParams({
-      SingleLine: search, f: 'json', outFields: 'Match_addr', maxLocations: '5',
+      SingleLine: search, f: 'json', outFields: 'Match_addr,AddNum,Addr_type', maxLocations: '5',
       forStorage: 'false', sourceCountry: 'BRA', outSR: '4326'
     });
-    const data = await fetchAddressJson(`https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?${params}`, 20000);
-    if (data.error || !Array.isArray(data.candidates)) throw new Error('Serviço alternativo indisponível');
-    return data.candidates.map(candidate => ({
+    const data = await fetchAddressJson(`https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?${params}`, 12000);
+    if (data.error || !Array.isArray(data.candidates)) throw new Error('Serviço indisponível');
+    if (data.candidates.length) return data.candidates.map(candidate => ({
       geometry: { type: 'Point', coordinates: [candidate.location?.x, candidate.location?.y] },
-      properties: { address: candidate.address }
+      properties: { address: candidate.address, housenumber: candidate.attributes?.AddNum }
     }));
+  } catch (error) {
+    // Try the alternate service if the primary service cannot respond.
   }
+  const params = new URLSearchParams({ q: search, lat: '-25.3905', lon: '-51.4655', limit: '5', lang: 'default' });
+  const data = await fetchAddressJson(`https://photon.komoot.io/api/?${params}`, 20000);
+  if (!Array.isArray(data.features)) throw new Error('Serviço alternativo indisponível');
+  return data.features;
 }
 
 addressForm.addEventListener('submit', async event => {
@@ -97,8 +93,7 @@ addressForm.addEventListener('submit', async event => {
   addressStatus.textContent = 'Buscando endereço...';
   try {
     const search = /guarapuava/i.test(query) ? query : `${query}, Guarapuava, Paraná`;
-    const cacheKey = search.toLocaleLowerCase('pt-BR');
-    const results = (await findAddresses(search, cacheKey)).filter(result => {
+    const results = (await findAddresses(search)).filter(result => {
       const coordinates = result.geometry?.coordinates;
       return result.geometry?.type === 'Point' && Array.isArray(coordinates) && coordinates.length >= 2 &&
         Number.isFinite(coordinates[0]) && Math.abs(coordinates[0]) <= 180 &&
@@ -112,7 +107,9 @@ addressForm.addEventListener('submit', async event => {
       ? 'Um resultado encontrado. Selecione e confira se o endereço está correto.'
       : `${results.length} resultados encontrados. Selecione e confira o endereço.`;
     results.forEach(result => {
-      const label = addressLabel(result.properties || {}) || 'Local sem endereço detalhado';
+      const properties = result.properties || {};
+      const hasNumber = Boolean(properties.housenumber);
+      const label = (addressLabel(properties) || 'Local sem endereço detalhado') + (hasNumber ? '' : ' (número não identificado)');
       const item = make('li', '');
       const button = make('button', 'address-result', label);
       button.type = 'button';
@@ -124,7 +121,9 @@ addressForm.addEventListener('submit', async event => {
         map.setView([latitude, longitude], 17);
         addressMarker.openPopup();
         addressResults.replaceChildren();
-        addressStatus.textContent = 'Endereço localizado no mapa. A posição pode ser aproximada; confirme o número e a rua.';
+        addressStatus.textContent = hasNumber
+          ? 'Endereço localizado no mapa. A posição pode ser aproximada; confirme o número e a rua.'
+          : 'Este resultado não inclui o número do imóvel. Confira a rua e tente informar mais detalhes.';
       });
       item.append(button);
       addressResults.append(item);
