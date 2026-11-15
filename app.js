@@ -58,7 +58,7 @@ addressForm.addEventListener('submit', async event => {
   addressResults.replaceChildren();
   addressStatus.textContent = 'Buscando endereço...';
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 12000);
+  const timeout = setTimeout(() => controller.abort(), 30000);
   try {
     const search = /guarapuava/i.test(query) ? query : `${query}, Guarapuava, Paraná`;
     const cacheKey = search.toLocaleLowerCase('pt-BR');
