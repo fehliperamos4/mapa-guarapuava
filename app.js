@@ -10,9 +10,16 @@ const detailTitle = document.getElementById('detail-title');
 const generalButton = document.getElementById('show-general');
 const viewButtons = [...document.querySelectorAll('.map-view-button')];
 const viewHelp = document.getElementById('view-help');
+const addressForm = document.getElementById('address-search');
+const addressInput = document.getElementById('address-query');
+const addressButton = document.getElementById('address-submit');
+const addressStatus = document.getElementById('address-status');
+const addressResults = document.getElementById('address-results');
 let features = [];
 let map;
 let mapLayers;
+let addressMarker;
+const addressCache = new Map();
 let selectedIndex = null;
 let visible = [];
 let view = 'microareas';
@@ -31,6 +38,78 @@ function make(tag, className, value) {
   if (value != null) element.textContent = value;
   return element;
 }
+
+function addressLabel(properties) {
+  const street = [properties.street, properties.housenumber].filter(Boolean).join(', ');
+  const parts = [properties.name, street, properties.district, properties.city, properties.state];
+  return [...new Set(parts.filter(part => typeof part === 'string' && part.trim()).map(part => part.trim()))].join(' · ');
+}
+
+addressForm.addEventListener('submit', async event => {
+  event.preventDefault();
+  const query = addressInput.value.trim();
+  if (!query || addressButton.disabled) return;
+  if (!map) {
+    addressStatus.textContent = 'O mapa ainda não está disponível. Verifique sua conexão e tente novamente.';
+    return;
+  }
+  addressButton.disabled = true;
+  addressForm.setAttribute('aria-busy', 'true');
+  addressResults.replaceChildren();
+  addressStatus.textContent = 'Buscando endereço...';
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 12000);
+  try {
+    const search = /guarapuava/i.test(query) ? query : `${query}, Guarapuava, Paraná`;
+    const cacheKey = search.toLocaleLowerCase('pt-BR');
+    let data = addressCache.get(cacheKey);
+    if (!data) {
+      const params = new URLSearchParams({ q: search, lat: '-25.3905', lon: '-51.4655', limit: '5', lang: 'pt' });
+      const response = await fetch(`https://photon.komoot.io/api/?${params}`, { signal: controller.signal });
+      if (!response.ok) throw new Error('Busca indisponível');
+      data = await response.json();
+      addressCache.set(cacheKey, data);
+    }
+    const results = (Array.isArray(data.features) ? data.features : []).filter(result => {
+      const coordinates = result.geometry?.coordinates;
+      return result.geometry?.type === 'Point' && Array.isArray(coordinates) && coordinates.length >= 2 &&
+        Number.isFinite(coordinates[0]) && Math.abs(coordinates[0]) <= 180 &&
+        Number.isFinite(coordinates[1]) && Math.abs(coordinates[1]) <= 90;
+    });
+    if (!results.length) {
+      addressStatus.textContent = 'Nenhum endereço encontrado. Tente informar a rua, o número ou o bairro.';
+      return;
+    }
+    addressStatus.textContent = results.length === 1
+      ? 'Um resultado encontrado. Selecione e confira se o endereço está correto.'
+      : `${results.length} resultados encontrados. Selecione e confira o endereço.`;
+    results.forEach(result => {
+      const label = addressLabel(result.properties || {}) || 'Local sem endereço detalhado';
+      const item = make('li', '');
+      const button = make('button', 'address-result', label);
+      button.type = 'button';
+      button.addEventListener('click', () => {
+        const [longitude, latitude] = result.geometry.coordinates;
+        if (addressMarker) map.removeLayer(addressMarker);
+        const content = make('div', 'address-popup', label);
+        addressMarker = L.marker([latitude, longitude]).addTo(map).bindPopup(content);
+        map.setView([latitude, longitude], 17);
+        addressMarker.openPopup();
+        addressResults.replaceChildren();
+        addressStatus.textContent = 'Endereço localizado no mapa. A posição pode ser aproximada; confirme o número e a rua.';
+      });
+      item.append(button);
+      addressResults.append(item);
+    });
+  } catch (error) {
+    addressStatus.textContent = 'Não foi possível buscar o endereço agora. Verifique sua conexão e tente novamente.';
+    console.error(error);
+  } finally {
+    clearTimeout(timeout);
+    addressButton.disabled = false;
+    addressForm.removeAttribute('aria-busy');
+  }
+});
 
 // Preserve line breaks from My Maps descriptions without rendering their HTML.
 function descriptionText(html) {
