@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#173e35">
+  <meta name="description" content="Uma nova maneira de explorar as microáreas e unidades de saúde de Guarapuava.">
+  <title>Unificado Geral · Guarapuava</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="."><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m3.5 6 5.2-2.5 6.6 2.6L20.5 4v14l-5.2 2.3-6.6-2.5-5.2 2.3V6Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M8.7 3.5v14.3M15.3 6.1v14.2" stroke="currentColor" stroke-width="1.6"/></svg></span><span><strong>UNIFICADO GERAL</strong><small>GUARAPUAVA · PR</small></span></a>
+    <div class="header-right"><span class="header-label"><span></span> TERRITÓRIO EM FOCO</span><a class="external" href="https://www.google.com/maps/d/edit?mid=1ajBtlLrOErkPo9KpmyyFHFDFgnBRHRo" target="_blank" rel="noopener noreferrer">Abrir mapa original <span aria-hidden="true">↗</span></a></div>
+  </header>
+  <main class="page">
+    <section class="intro"><div><p class="eyebrow">MAPA DE GUARAPUAVA</p><h1>Explore as <em>microáreas.</em></h1><p class="subtitle">Escolha uma unidade de saúde e conheça seu território.</p></div><div class="intro-mark" aria-hidden="true"><svg viewBox="0 0 170 100" fill="none"><path d="M-20 66C22 5 51 121 94 60S145 16 192 40M-20 78C22 17 51 133 94 72S145 28 192 52M-20 90C22 29 51 145 94 84S145 40 192 64M-20 54C22 -7 51 109 94 48S145 4 192 28" stroke="currentColor" stroke-width="1"/></svg></div></section>
+    <section class="workspace" aria-label="Explorador do mapa">
+      <aside class="sidebar">
+        <div class="sidebar-top"><span class="section-kicker">EXPLORE O TERRITÓRIO</span><h2>Áreas no mapa</h2><p>Escolha uma UBS acima do mapa para filtrar as áreas.</p>
+          <button type="button" class="reset" id="overview">↗ &nbsp; Ver território completo</button>
+        </div>
+        <div class="list-head"><div><span class="section-kicker">NO MAPA</span><h3 id="list-title">Visão geral</h3></div><span class="count" id="count">—</span></div>
+        <div id="feature-list" class="feature-list"><p class="empty">Carregando áreas...</p></div>
+        <p class="sidebar-foot">Selecione uma área na lista ou toque nela no mapa para ver os detalhes.</p>
+      </aside>
+      <div class="map-area"><div class="map-top"><div><span class="section-kicker">MAPA INTERATIVO</span><h2 id="map-title">Todo o território</h2></div><span class="map-badge"><i></i> GUARAPUAVA, PR</span></div><div class="map-view-bar"><span class="map-view-label">Visualizar</span><div class="map-view-switch" role="group" aria-label="Escolha o que visualizar no mapa"><button type="button" class="map-view-button" data-view="microareas" aria-pressed="true">Microáreas</button><button type="button" class="map-view-button" data-view="abrangencias" aria-pressed="false">Áreas das UBS</button></div><div class="map-unit-filter"><label for="unit">Unidade de saúde</label><div class="select-wrap"><select id="unit"><option value="">Todas as unidades</option></select></div></div><span class="map-view-help" id="view-help">Selecione uma microárea para ver as informações.</span></div><div id="map" aria-label="Mapa interativo de Guarapuava"></div><div id="map-error" class="map-error" hidden>Não foi possível carregar o mapa. Confira sua conexão com a internet e tente novamente.</div><div class="map-caption"><span>Aproxime com o rolo do mouse, os botões + e − ou o gesto de pinça. Selecione uma área para ver os detalhes.</span><span>Dados do mapa: OpenStreetMap</span></div></div>
+      <aside class="details" aria-live="polite"><div class="detail-head"><span class="section-kicker">INFORMAÇÕES</span><h2 id="detail-title">Detalhes da área</h2><button type="button" id="show-general" class="general-button" hidden>← Ver informações gerais da UBS</button></div><div id="detail-content" class="detail-content"><div class="detail-empty"><span class="detail-symbol">✳</span><h3>Escolha uma área</h3><p>Ao selecionar uma área no mapa ou na lista, as informações disponíveis aparecem aqui.</p></div></div></aside>
+    </section>
+    <div class="source-note"><span>ⓘ</span><p>Esta visualização usa uma cópia do mapa de <strong>13/11/2026</strong>. Alterações posteriores no My Maps não aparecem automaticamente.</p></div>
+  </main>
+  <footer><span><strong>UNIFICADO GERAL</strong> &nbsp;·&nbsp; Guarapuava, PR</span><span>Um território, muitas histórias.</span></footer>
+</body>
+</html>
+
