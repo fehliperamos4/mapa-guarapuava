@@ -1,6 +1,8 @@
 'use strict';
 
 const select = document.getElementById('unit');
+const microareaFilter = document.getElementById('mobile-microarea-filter');
+const microareaSelect = document.getElementById('mobile-microarea');
 const list = document.getElementById('feature-list');
 const count = document.getElementById('count');
 const mapTitle = document.getElementById('map-title');
@@ -23,7 +25,7 @@ let selectedIndex = null;
 let visible = [];
 let view = 'microareas';
 const coverageColors = ['#34836b', '#d98751', '#667fbe', '#c76b7d', '#a7834b', '#688d61', '#8c72a2', '#438f9c', '#c47f4a'];
-const typeNames = { microarea: 'Microárea', abrangencia: 'Área de abrangência', outro: 'Unidade / ponto' };
+const typeNames = { microarea: 'Microárea', abrangencia: 'Área de cobertura', outro: 'Unidade / ponto' };
 
 function featureColor(feature) {
   if (feature.properties.tipo !== 'abrangencia') return feature.properties.style?.color || '#82a580';
@@ -178,6 +180,7 @@ function makeMapPopup(feature) {
 
 function showGeneral(unit) {
   selectedIndex = null;
+  microareaSelect.value = '';
   if (map) map.closePopup();
   for (const button of list.querySelectorAll('button')) {
     button.classList.remove('active');
@@ -213,6 +216,7 @@ function showEmptyDetail() {
 function choose(index, pan, position) {
   selectedIndex = index;
   const feature = features[index];
+  microareaSelect.value = String(index);
   showDetail(feature);
   for (const button of list.querySelectorAll('button')) {
     const isSelected = Number(button.dataset.index) === index;
@@ -233,6 +237,20 @@ function choose(index, pan, position) {
 
 function render(fitMap = true) {
   const unit = select.value;
+  microareaFilter.hidden = !unit;
+  microareaSelect.replaceChildren();
+  const microareas = features.map((feature, index) => ({ feature, index }))
+    .filter(({ feature }) => feature.properties.ubs === unit && feature.properties.tipo === 'microarea')
+    .sort((a, b) => (a.feature.properties.name || '').localeCompare(b.feature.properties.name || '', 'pt-BR', { numeric: true }));
+  const placeholder = make('option', '', microareas.length ? 'Todas as microáreas' : 'Nenhuma microárea disponível');
+  placeholder.value = '';
+  microareaSelect.append(placeholder);
+  microareaSelect.disabled = !microareas.length;
+  for (const { feature, index } of microareas) {
+    const option = make('option', '', feature.properties.name || 'Microárea sem nome');
+    option.value = String(index);
+    microareaSelect.append(option);
+  }
   visible = features.map((feature, index) => ({ feature, index })).filter(({ feature }) =>
     (!unit || feature.properties.ubs === unit) &&
     (view === 'abrangencias' ? feature.properties.tipo === 'abrangencia' : feature.properties.tipo !== 'abrangencia')
@@ -241,10 +259,10 @@ function render(fitMap = true) {
   selectedIndex = null;
   if (unit) showGeneral(unit); else showEmptyDetail();
   mapTitle.textContent = unit || 'Todo o território';
-  listTitle.textContent = view === 'abrangencias' ? 'Áreas das UBS' : 'Microáreas e pontos';
+  listTitle.textContent = view === 'abrangencias' ? 'Áreas de cobertura' : 'Microáreas e pontos';
   viewButtons.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.view === view)));
   viewHelp.textContent = view === 'abrangencias'
-    ? 'Selecione a área de uma UBS para ver as informações da unidade.'
+    ? 'Selecione a área de cobertura de uma UBS para ver as informações da unidade.'
     : 'Selecione uma microárea para ver as informações.';
   count.textContent = `${visible.length} ${visible.length === 1 ? 'item' : 'itens'}`;
   list.replaceChildren();
@@ -288,6 +306,12 @@ async function start() {
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' }).addTo(map);
     } else document.getElementById('map-error').hidden = false;
     select.addEventListener('change', () => render());
+    microareaSelect.addEventListener('change', () => {
+      const index = microareaSelect.value;
+      if (index === '') { render(); return; }
+      if (view !== 'microareas') { view = 'microareas'; render(false); }
+      choose(Number(index), true);
+    });
     viewButtons.forEach(button => button.addEventListener('click', () => {
       if (view !== button.dataset.view) { view = button.dataset.view; render(false); }
     }));

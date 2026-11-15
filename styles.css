@@ -108,3 +108,19 @@ footer{max-width:1860px;padding-left:2.5%;padding-right:2.5%}
 .address-popup{font-size:12px;line-height:1.5;overflow-wrap:anywhere}
 @media(max-width:650px){.address-search{padding:12px 14px}.address-search-fields button{padding:10px 14px}}
 
+/* Mobile controls follow the order in which people explore the map. */
+.mobile-microarea-filter{display:none}
+@media(max-width:650px){
+  .map-top{order:0}
+  .address-search{order:1}
+  .map-view-bar{order:2}
+  #map{order:3}
+  .map-error{order:4}
+  .map-caption{order:5}
+  .mobile-microarea-filter:not([hidden]){display:flex;flex:1 1 100%;flex-direction:column;gap:5px;min-width:0}
+  .mobile-microarea-filter label{color:#5c7867;font-size:11px;font-weight:700}
+  .mobile-microarea-filter .select-wrap{width:100%}
+  .mobile-microarea-filter select{padding:9px 30px 9px 11px;background:#fff}
+  .mobile-microarea-filter .select-wrap:after{top:5px}
+}
+
