@@ -40,9 +40,47 @@ function make(tag, className, value) {
 }
 
 function addressLabel(properties) {
+  if (typeof properties.address === 'string' && properties.address.trim()) return properties.address.trim();
   const street = [properties.street, properties.housenumber].filter(Boolean).join(', ');
   const parts = [properties.name, street, properties.district, properties.city, properties.state];
   return [...new Set(parts.filter(part => typeof part === 'string' && part.trim()).map(part => part.trim()))].join(' · ');
+}
+
+async function fetchAddressJson(url, timeoutMs) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, { signal: controller.signal });
+    if (!response.ok) throw new Error(`Serviço indisponível (${response.status})`);
+    return await response.json();
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function findAddresses(search, cacheKey) {
+  const cached = addressCache.get(cacheKey);
+  if (cached) return cached;
+
+  try {
+    const params = new URLSearchParams({ q: search, lat: '-25.3905', lon: '-51.4655', limit: '5', lang: 'default' });
+    const data = await fetchAddressJson(`https://photon.komoot.io/api/?${params}`, 7000);
+    if (!Array.isArray(data.features)) throw new Error('Resposta inválida do serviço de busca');
+    addressCache.set(cacheKey, data.features);
+    return data.features;
+  } catch (error) {
+    // Geosearch results from Esri are displayed temporarily and are not cached.
+    const params = new URLSearchParams({
+      SingleLine: search, f: 'json', outFields: 'Match_addr', maxLocations: '5',
+      forStorage: 'false', sourceCountry: 'BRA', outSR: '4326'
+    });
+    const data = await fetchAddressJson(`https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?${params}`, 20000);
+    if (data.error || !Array.isArray(data.candidates)) throw new Error('Serviço alternativo indisponível');
+    return data.candidates.map(candidate => ({
+      geometry: { type: 'Point', coordinates: [candidate.location?.x, candidate.location?.y] },
+      properties: { address: candidate.address }
+    }));
+  }
 }
 
 addressForm.addEventListener('submit', async event => {
@@ -57,20 +95,10 @@ addressForm.addEventListener('submit', async event => {
   addressForm.setAttribute('aria-busy', 'true');
   addressResults.replaceChildren();
   addressStatus.textContent = 'Buscando endereço...';
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 30000);
   try {
     const search = /guarapuava/i.test(query) ? query : `${query}, Guarapuava, Paraná`;
     const cacheKey = search.toLocaleLowerCase('pt-BR');
-    let data = addressCache.get(cacheKey);
-    if (!data) {
-      const params = new URLSearchParams({ q: search, lat: '-25.3905', lon: '-51.4655', limit: '5', lang: 'default' });
-      const response = await fetch(`https://photon.komoot.io/api/?${params}`, { signal: controller.signal });
-      if (!response.ok) throw new Error('Busca indisponível');
-      data = await response.json();
-      addressCache.set(cacheKey, data);
-    }
-    const results = (Array.isArray(data.features) ? data.features : []).filter(result => {
+    const results = (await findAddresses(search, cacheKey)).filter(result => {
       const coordinates = result.geometry?.coordinates;
       return result.geometry?.type === 'Point' && Array.isArray(coordinates) && coordinates.length >= 2 &&
         Number.isFinite(coordinates[0]) && Math.abs(coordinates[0]) <= 180 &&
@@ -102,10 +130,9 @@ addressForm.addEventListener('submit', async event => {
       addressResults.append(item);
     });
   } catch (error) {
-    addressStatus.textContent = 'Não foi possível buscar o endereço agora. Verifique sua conexão e tente novamente.';
+    addressStatus.textContent = 'Não foi possível consultar o serviço de endereços. Tente novamente em alguns instantes.';
     console.error(error);
   } finally {
-    clearTimeout(timeout);
     addressButton.disabled = false;
     addressForm.removeAttribute('aria-busy');
   }
