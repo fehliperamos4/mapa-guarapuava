@@ -64,7 +64,7 @@ addressForm.addEventListener('submit', async event => {
     const cacheKey = search.toLocaleLowerCase('pt-BR');
     let data = addressCache.get(cacheKey);
     if (!data) {
-      const params = new URLSearchParams({ q: search, lat: '-25.3905', lon: '-51.4655', limit: '5', lang: 'pt' });
+      const params = new URLSearchParams({ q: search, lat: '-25.3905', lon: '-51.4655', limit: '5', lang: 'default' });
       const response = await fetch(`https://photon.komoot.io/api/?${params}`, { signal: controller.signal });
       if (!response.ok) throw new Error('Busca indisponível');
       data = await response.json();
