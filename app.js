@@ -295,7 +295,7 @@ function render(fitMap = true) {
 
 async function start() {
   try {
-    const response = await fetch('mapa.json');
+    const response = await fetch('mapa.json?v=20261115-5');
     if (!response.ok) throw new Error('Falha ao carregar os dados');
     const data = await response.json();
     features = data.features || [];
@@ -325,4 +325,3 @@ async function start() {
   }
 }
 start();
-
