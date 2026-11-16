@@ -243,3 +243,42 @@ footer{max-width:1860px;padding-left:2.5%;padding-right:2.5%}
   .registry-card-actions{align-items:flex-start;flex-direction:column}
   .registry-source{text-align:left}
 }
+
+/* Improve contrast and hierarchy in the unit registry. */
+.registry-section{border-color:#c5d8c5;background:#e9f1e8;box-shadow:0 18px 45px #244a3520}
+.registry-heading .eyebrow{color:#3f6d52}
+.registry-heading p:not(.eyebrow){color:#526f5e}
+.registry-asof{border-color:#b8d0b9;background:#dceadc;color:#315c43}
+.registry-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
+.registry-kpi{border-color:#b9d1ba;background:linear-gradient(145deg,#dcebdd,#edf4eb)}
+.registry-kpi-label,.registry-kpi-note{color:#4d6f59}
+.registry-kpi-value{color:#174a3b}
+.registry-data-head h3{color:#1e4638}
+.registry-data-head p{color:#5b7463}
+.registry-count{color:#466b52}
+.registry-card{border-color:#b9d0bb;background:#f7fbf6}
+.registry-card[open]{border-color:#6e9b78;background:#fff;box-shadow:0 10px 26px #294d3820}
+.registry-card-title h4{color:#1f4a38}
+.registry-total-pill{border:1px solid #bdd5be;background:#dcebdd;color:#315f42}
+.registry-card-highlights .registry-stat-label{color:#5f7868}
+.registry-card-highlights .registry-stat-value{color:#2e5e45}
+.registry-toggle{border-color:#a5c5a8;background:#e7f1e5;color:#3c6e4d}
+.registry-card-body{border-top-color:#d1e0d1}
+.registry-card-metrics .registry-stat{border:1px solid #d0e2d0;background:#e7f1e6}
+.registry-card-metrics .registry-stat-label{color:#577363}
+.registry-card-metrics .registry-stat-value{color:#20573f}
+.registry-microareas h5,.registry-discovered h5{color:#315e44}
+.registry-microarea-row,.registry-uncovered-row{border-bottom-color:#dbe7da}
+.registry-microarea-description strong{color:#315542}
+.registry-microarea-description span,.registry-microarea-count span{color:#6c8474}
+.registry-microarea-count strong{color:#1f5a40}
+.registry-microarea-map-button,.registry-map-button{border-color:#b5d0b7;background:#e2efe1;color:#2a6447}
+.registry-microarea-map-button:hover,.registry-map-button:hover{background:#d5e8d5}
+.registry-discovered{border-top-color:#cfdfcf}
+.registry-discovered-heading span{color:#587565}
+.registry-uncovered-row strong{color:#3b654d}
+.registry-uncovered-row span,.registry-no-data{color:#6d8575}
+.registry-source{color:#67806f}
+.registry-rule{border:1px solid #c5d9c5;background:#dcebdd;color:#486b56}
+.registry-rule a{color:#205c3d}
+@media(max-width:900px){.registry-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
