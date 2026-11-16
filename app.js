@@ -280,7 +280,6 @@ function renderRegistryCard(coverage) {
   title.append(make('h4', '', unit), make('span', 'registry-total-pill', `${formatRegistryNumber(totalPopulation)} no total da abrangência`));
   const highlights = make('div', 'registry-card-highlights');
   appendRegistryStat(highlights, 'Microáreas', formatRegistryNumber(microareas.length));
-  appendRegistryStat(highlights, 'Acima de 750*', String(above750));
   appendRegistryStat(highlights, 'Áreas descobertas', String(discoveredAreaCount));
   summary.append(title, highlights, make('span', 'registry-toggle', '＋'));
   card.append(summary);
@@ -353,7 +352,7 @@ function renderRegistryCard(coverage) {
   actions.append(locate, make('span', 'registry-source', 'Fonte: cópia do My Maps · 15/11/2026'));
   body.append(actions);
   card.append(body);
-  return { card, microareas, above750, atMost399 };
+  return { card, microareas, above750, atMost399, discoveredAreaCount };
 }
 
 function renderRegistry() {
@@ -367,7 +366,7 @@ function renderRegistry() {
   const totalAbove750 = cards.reduce((sum, result) => sum + result.above750, 0);
   const totalAtMost399 = cards.reduce((sum, result) => sum + result.atMost399, 0);
   registryKpis.replaceChildren();
-  const totalDiscoveredAreas = cards.reduce((sum, result) => sum + result.card.querySelectorAll('.registry-discovered .registry-uncovered-row').length, 0);
+  const totalDiscoveredAreas = cards.reduce((sum, result) => sum + result.discoveredAreaCount, 0);
   const kpis = [
     ['Áreas de cobertura', String(coverages.length), 'unidades no mapa'],
     ['Microáreas', String(totalMicroareas), 'por ACS'],
