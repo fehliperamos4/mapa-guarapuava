@@ -275,6 +275,7 @@ function renderRegistryCard(coverage) {
     const countBlock = make('span', 'registry-microarea-count');
     countBlock.append(make('strong', '', formatRegistryNumber(area.population)));
     countBlock.append(make('span', '', 'cadastrados'));
+    if (area.population > 750) countBlock.append(make('em', 'registry-alert-chip', 'Mais de 750 cadastrados'));
     const locateMicroarea = make('button', 'registry-microarea-map-button', 'Ver no mapa ↗');
     locateMicroarea.type = 'button';
     locateMicroarea.addEventListener('click', event => {
