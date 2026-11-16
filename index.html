@@ -5,22 +5,22 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#173e35">
   <meta name="description" content="Uma nova maneira de explorar as microáreas e unidades de saúde de Guarapuava.">
-  <title>Unificado Geral · Guarapuava</title>
+  <title>Territórios e Áreas de Abrangência das Unidades de Saúde — Guarapuava</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
-  <link rel="stylesheet" href="styles.css?v=20261116-3">
+  <link rel="stylesheet" href="styles.css?v=20261116-4">
   <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-  <script defer src="app.js?v=20261116-3"></script>
+  <script defer src="app.js?v=20261116-4"></script>
 </head>
 <body>
   <header class="topbar">
-    <a class="brand" href="."><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m3.5 6 5.2-2.5 6.6 2.6L20.5 4v14l-5.2 2.3-6.6-2.5-5.2 2.3V6Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M8.7 3.5v14.3M15.3 6.1v14.2" stroke="currentColor" stroke-width="1.6"/></svg></span><span><strong>UNIFICADO GERAL</strong><small>GUARAPUAVA · PR</small></span></a>
+    <a class="brand" href="."><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m3.5 6 5.2-2.5 6.6 2.6L20.5 4v14l-5.2 2.3-6.6-2.5-5.2 2.3V6Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M8.7 3.5v14.3M15.3 6.1v14.2" stroke="currentColor" stroke-width="1.6"/></svg></span><span><strong>TERRITÓRIOS E ÁREAS DE ABRANGÊNCIA</strong><small>UNIDADES DE SAÚDE · GUARAPUAVA · PR</small></span></a>
     <div class="header-right"><span class="header-label"><span></span> TERRITÓRIO EM FOCO</span><a class="external" href="https://www.google.com/maps/d/edit?mid=1ajBtlLrOErkPo9KpmyyFHFDFgnBRHRo" target="_blank" rel="noopener noreferrer">Abrir mapa original <span aria-hidden="true">↗</span></a></div>
   </header>
   <main class="page">
-    <section class="intro"><div><p class="eyebrow">MAPA DE GUARAPUAVA</p><h1>Explore as <em>microáreas.</em></h1><p class="subtitle">Escolha uma unidade de saúde e conheça seu território.</p></div><div class="intro-mark" aria-hidden="true"><svg viewBox="0 0 170 100" fill="none"><path d="M-20 66C22 5 51 121 94 60S145 16 192 40M-20 78C22 17 51 133 94 72S145 28 192 52M-20 90C22 29 51 145 94 84S145 40 192 64M-20 54C22 -7 51 109 94 48S145 4 192 28" stroke="currentColor" stroke-width="1"/></svg></div></section>
+    <section class="intro"><div><p class="eyebrow">TERRITORIALIZAÇÃO DA SAÚDE</p><h1>Explore as <em>microáreas.</em></h1><p class="subtitle">Territórios e áreas de abrangência das unidades de saúde de Guarapuava.</p></div><div class="intro-mark" aria-hidden="true"><svg viewBox="0 0 170 100" fill="none"><path d="M-20 66C22 5 51 121 94 60S145 16 192 40M-20 78C22 17 51 133 94 72S145 28 192 52M-20 90C22 29 51 145 94 84S145 40 192 64M-20 54C22 -7 51 109 94 48S145 4 192 28" stroke="currentColor" stroke-width="1"/></svg></div></section>
     <section class="workspace" aria-label="Explorador do mapa">
       <aside class="sidebar">
         <div class="sidebar-top"><span class="section-kicker">EXPLORE O TERRITÓRIO</span><h2>Áreas no mapa</h2><p>Escolha uma UBS acima do mapa para filtrar as áreas.</p>
@@ -38,10 +38,11 @@
       <div id="registry-kpis" class="registry-kpis" aria-label="Resumo dos dados no mapa"></div>
       <div class="registry-data-head"><div><h3>Áreas de cobertura no mapa</h3><p>Abra uma unidade para ver o total, as áreas descobertas e as pessoas de cada microárea.</p></div><span id="registry-count" class="registry-count"></span></div>
       <div id="registry-grid" class="registry-grid"><p class="registry-loading">Preparando os dados do mapa…</p></div>
+      <p class="registry-rule">A PNAB orienta a organização do território por microáreas e o acompanhamento de pessoas cadastradas pelos ACS. Aqui você pode consultar o total da unidade, a quantidade de microáreas, as áreas descobertas e os cadastrados de cada microárea. <a href="https://bvsms.saude.gov.br/bvs/saudelegis/gm/2017/prt2436_22_09_2017.html" target="_blank" rel="noopener noreferrer">Consultar a PNAB ↗</a></p>
     </section>
     <div class="source-note"><span>ⓘ</span><p>Esta visualização usa uma cópia do mapa de <strong>15/11/2026</strong>. Alterações posteriores no My Maps não aparecem automaticamente.</p></div>
   </main>
-  <footer><span><strong>UNIFICADO GERAL</strong> &nbsp;·&nbsp; Guarapuava, PR</span></footer>
+  <footer><span><strong>TERRITÓRIOS E ÁREAS DE ABRANGÊNCIA</strong> &nbsp;·&nbsp; Unidades de Saúde de Guarapuava</span></footer>
 </body>
 </html>
 

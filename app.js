@@ -256,8 +256,6 @@ function renderRegistryCard(coverage) {
   const unit = coverage.properties.ubs || coverage.properties.name || 'Unidade sem nome';
   const sections = registryFields(coverage.properties.description);
   const totalPopulation = registryNumber(registryValue(sections.total, ['CADASTRADOS', 'USUARIOS']));
-  const declaredMicroareas = registryNumber(registryValue(sections.covered, ['MICROAREAS']));
-  const declaredCovered = registryNumber(registryValue(sections.covered, ['CADASTRADOS', 'USUARIOS']));
   const declaredDiscoveredAreas = registryNumber(registryValue(sections.uncovered, ['AREAS']));
   const declaredDiscoveredPopulation = registryNumber(registryValue(sections.uncovered, ['CADASTRADOS', 'USUARIOS']));
   const records = features.filter(feature => feature.properties.ubs === unit && feature.properties.tipo === 'microarea');
@@ -268,10 +266,6 @@ function renderRegistryCard(coverage) {
     return numberA - numberB || a.name.localeCompare(b.name, 'pt-BR');
   });
   const uncoveredAreas = logicalFeatureGroups(uncoveredFeatures, true);
-  const registeredMicroareas = microareas.filter(area => area.population != null);
-  const coveredPopulation = registeredMicroareas.reduce((sum, area) => sum + area.population, 0);
-  const above750 = registeredMicroareas.filter(area => area.population > 750).length;
-  const atMost399 = registeredMicroareas.filter(area => area.population < 400).length;
   const discoveredAreaCount = unit === 'UBS BONSUCESSO' ? 1 : (declaredDiscoveredAreas ?? uncoveredAreas.length);
   const discoveredPopulation = declaredDiscoveredPopulation;
   const card = make('details', 'registry-card');
@@ -302,7 +296,19 @@ function renderRegistryCard(coverage) {
     const countBlock = make('span', 'registry-microarea-count');
     countBlock.append(make('strong', '', formatRegistryNumber(area.population)));
     countBlock.append(make('span', '', 'cadastrados'));
-    if (area.population > 750) countBlock.append(make('em', 'registry-alert-chip', 'Acima de 750*'));
+    const locateMicroarea = make('button', 'registry-microarea-map-button', 'Ver no mapa ↗');
+    locateMicroarea.type = 'button';
+    locateMicroarea.addEventListener('click', event => {
+      event.preventDefault();
+      event.stopPropagation();
+      select.value = unit;
+      view = 'microareas';
+      render(false);
+      const index = features.indexOf(area.feature);
+      if (index >= 0) choose(index, true);
+      document.querySelector('.workspace').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    countBlock.append(locateMicroarea);
     row.append(description, countBlock);
     rows.append(row);
   }
@@ -352,7 +358,7 @@ function renderRegistryCard(coverage) {
   actions.append(locate, make('span', 'registry-source', 'Fonte: cópia do My Maps · 15/11/2026'));
   body.append(actions);
   card.append(body);
-  return { card, microareas, above750, atMost399, discoveredAreaCount };
+  return { card, microareas, discoveredAreaCount };
 }
 
 function renderRegistry() {
@@ -363,8 +369,6 @@ function renderRegistry() {
   const cards = coverages.map(renderRegistryCard);
   for (const result of cards) registryGrid.append(result.card);
   const totalMicroareas = cards.reduce((sum, result) => sum + result.microareas.length, 0);
-  const totalAbove750 = cards.reduce((sum, result) => sum + result.above750, 0);
-  const totalAtMost399 = cards.reduce((sum, result) => sum + result.atMost399, 0);
   registryKpis.replaceChildren();
   const totalDiscoveredAreas = cards.reduce((sum, result) => sum + result.discoveredAreaCount, 0);
   const kpis = [

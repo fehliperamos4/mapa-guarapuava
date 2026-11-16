@@ -179,6 +179,8 @@ footer{max-width:1860px;padding-left:2.5%;padding-right:2.5%}
 .registry-microarea-description span,.registry-microarea-count span{color:#92a096;font-size:9px}
 .registry-microarea-count{display:flex;align-items:flex-end;flex-direction:column;flex:none}
 .registry-microarea-count strong{color:#365946;font:700 12px Manrope,sans-serif}
+.registry-microarea-map-button{border:1px solid #d9e7d7;border-radius:7px;background:#f6faf3;padding:4px 6px;color:#2f694d;font-size:8px;font-weight:700;cursor:pointer;white-space:nowrap}
+.registry-microarea-map-button:hover{background:#eaf4e6}
 .registry-alert-chip{margin-top:3px;border-radius:20px;background:#fff0de;padding:3px 6px;color:#9a5b21;font-size:8px;font-style:normal;font-weight:700;white-space:nowrap}
 .registry-discovered{border-top:1px solid #e9efe7;padding-top:13px}
 .registry-discovered-heading{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
@@ -205,6 +207,8 @@ footer{max-width:1860px;padding-left:2.5%;padding-right:2.5%}
 .registry-rule a{color:#2c6948;font-weight:700;text-decoration:none}
 @media(max-width:900px){.registry-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.registry-grid{grid-template-columns:1fr}.registry-missing-units{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:650px){
+  .brand strong{display:block;max-width:180px;font-size:10px;line-height:1.15}
+  .brand small{font-size:7px;letter-spacing:.1em}
   .registry-section{margin-top:17px;padding:18px 14px;border-radius:14px}
   .registry-heading{align-items:flex-start;flex-direction:column;gap:12px;margin-bottom:16px}
   .registry-heading h2{font-size:27px}
