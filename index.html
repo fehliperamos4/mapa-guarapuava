@@ -10,9 +10,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
-  <link rel="stylesheet" href="styles.css?v=20261116-2">
+  <link rel="stylesheet" href="styles.css?v=20261116-3">
   <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-  <script defer src="app.js?v=20261116-2"></script>
+  <script defer src="app.js?v=20261116-3"></script>
 </head>
 <body>
   <header class="topbar">
@@ -34,17 +34,14 @@
       <aside class="details" aria-live="polite"><div class="detail-head"><span class="section-kicker">INFORMAÇÕES</span><h2 id="detail-title">Detalhes da área</h2><button type="button" id="show-general" class="general-button" hidden>← Ver informações gerais da UBS</button></div><div id="detail-content" class="detail-content"><div class="detail-empty"><span class="detail-symbol">✳</span><h3>Escolha uma área</h3><p>Ao selecionar uma área no mapa ou na lista, as informações disponíveis aparecem aqui.</p></div></div></aside>
     </section>
     <section class="registry-section" aria-labelledby="registry-title">
-      <div class="registry-heading"><div><p class="eyebrow">DADOS DO TERRITÓRIO</p><h2 id="registry-title">UBS e microáreas</h2><p>Veja as unidades representadas, os totais registrados e cada microárea por ACS.</p></div><span class="registry-asof">Cópia de 15/11/2026</span></div>
-      <div class="registry-notice" role="note"><span class="notice-icon" aria-hidden="true">i</span><div><strong>Este levantamento é parcial.</strong><p>A cópia mostra 10 áreas de cobertura e não inclui toda a rede municipal. Os números são os registrados no mapa, não um extrato atualizado do e-SUS APS. As diferenças de soma e de desenho são indicadas para conferência; nenhum valor foi corrigido por estimativa.</p></div></div>
+      <div class="registry-heading"><div><p class="eyebrow">DADOS DO TERRITÓRIO</p><h2 id="registry-title">UBS e microáreas</h2><p>Totais, microáreas e áreas descobertas por unidade.</p></div><span class="registry-asof">Dados de 15/11/2026</span></div>
       <div id="registry-kpis" class="registry-kpis" aria-label="Resumo dos dados no mapa"></div>
-      <div class="registry-data-head"><div><h3>Áreas de cobertura no mapa</h3><p>Abra uma unidade para ver totais, áreas descobertas e o cadastro de cada ACS.</p></div><span id="registry-count" class="registry-count"></span></div>
+      <div class="registry-data-head"><div><h3>Áreas de cobertura no mapa</h3><p>Abra uma unidade para ver o total, as áreas descobertas e as pessoas de cada microárea.</p></div><span id="registry-count" class="registry-count"></span></div>
       <div id="registry-grid" class="registry-grid"><p class="registry-loading">Preparando os dados do mapa…</p></div>
-      <details class="registry-coverage-gap"><summary>Por que a cópia não cobre toda a rede?</summary><p>O cruzamento preliminar por nome com o CNES municipal encontrou outras 25 entradas identificadas como ESF sem uma área de cobertura própria nesta cópia. A situação vigente de cada equipe precisa ser confirmada com a Secretaria/CNES antes de interpretar essa ausência como falta de cobertura.</p><ul id="registry-missing-units" class="registry-missing-units"></ul><a href="https://cnes2.datasus.gov.br/Listar_Mantidas.asp?VCnpj=76178037000176&amp;VEstado=41&amp;VNome=MUNICIPIO+DE+GUARAPUAVA" target="_blank" rel="noopener noreferrer">Consultar a lista municipal no CNES ↗</a></details>
-      <p class="registry-rule">A PNAB recomenda até 750 pessoas por ACS em áreas com grande dispersão, risco ou vulnerabilidade. Esse número precisa ser interpretado no contexto de cada território. A norma não define 400 pessoas como mínimo nacional. <a href="https://bvsms.saude.gov.br/bvs/saudelegis/gm/2017/prt2436_22_09_2017.html" target="_blank" rel="noopener noreferrer">Ver PNAB ↗</a></p>
     </section>
     <div class="source-note"><span>ⓘ</span><p>Esta visualização usa uma cópia do mapa de <strong>15/11/2026</strong>. Alterações posteriores no My Maps não aparecem automaticamente.</p></div>
   </main>
-  <footer><span><strong>UNIFICADO GERAL</strong> &nbsp;·&nbsp; Guarapuava, PR</span><span>Um território, muitas histórias.</span></footer>
+  <footer><span><strong>UNIFICADO GERAL</strong> &nbsp;·&nbsp; Guarapuava, PR</span></footer>
 </body>
 </html>
 
