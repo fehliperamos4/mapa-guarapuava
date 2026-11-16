@@ -88,7 +88,7 @@ footer{max-width:1860px;padding-left:2.5%;padding-right:2.5%}
 @media(max-width:650px){.map-view-bar{gap:8px;padding:10px 14px}.map-view-heading{flex:1 1 100%;min-width:0}.map-view-switch{width:100%}.map-view-button{flex:1;min-width:0}.map-view-help{flex-basis:100%}.map-error{inset:148px 0 44px}}
 
 /* Place the unit filter next to the map view controls. */
-.map-unit-filter{display:flex;align-items:center;gap:8px;min-width:0;margin-left:auto}
+.map-unit-filter{display:flex;align-items:center;gap:8px;min-width:0;margin-left:0;order:-1}
 .map-unit-filter label{color:#5c7867;font-size:11px;font-weight:700;white-space:nowrap}
 .map-unit-filter .select-wrap{width:225px;max-width:100%}
 .map-unit-filter select{padding:9px 30px 9px 11px;background:#fff}
