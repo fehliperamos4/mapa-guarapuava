@@ -471,8 +471,8 @@ function render(fitMap = true) {
   listTitle.textContent = view === 'abrangencias' ? 'Áreas de cobertura' : 'Microáreas e pontos';
   viewButtons.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.view === view)));
   viewHelp.textContent = view === 'abrangencias'
-    ? 'Selecione a área de cobertura de uma UBS para ver as informações da unidade.'
-    : 'Selecione uma microárea para ver as informações.';
+    ? '3 · Área de cobertura mostra o território completo da unidade, sem separar por ACS. Escolha uma UBS para destacar apenas essa unidade.'
+    : '3 · Microáreas mostram os territórios separados por ACS. Escolha uma UBS para filtrar a lista.';
   count.textContent = `${visible.length} ${visible.length === 1 ? 'item' : 'itens'}`;
   list.replaceChildren();
   if (!visible.length) list.append(make('p', 'empty', 'Nenhum item encontrado nesta unidade.'));
@@ -537,4 +537,3 @@ async function start() {
   }
 }
 start();
-

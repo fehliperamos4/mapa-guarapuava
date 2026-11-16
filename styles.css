@@ -73,14 +73,19 @@ footer{max-width:1860px;padding-left:2.5%;padding-right:2.5%}
 
 /* Keep the two map views easy to find and usable without overlapping areas. */
 .map-view-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 20px;border-top:1px solid #edf2eb;background:#fbfdf9}
+.map-view-heading{display:flex;flex-direction:column;gap:2px;min-width:140px}
 .map-view-label{color:#5c7867;font-size:11px;font-weight:700}
+.map-view-subtitle{color:#92a096;font-size:9px;line-height:1.35}
 .map-view-switch{display:inline-flex;gap:3px;padding:3px;background:#eaf2e8;border:1px solid #dce9d9;border-radius:11px}
-.map-view-button{border:0;border-radius:8px;background:transparent;padding:8px 12px;color:#54705f;cursor:pointer;font-size:11px;font-weight:700;white-space:nowrap}
+.map-view-button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;border:0;border-radius:8px;background:transparent;min-width:112px;padding:7px 12px;color:#54705f;cursor:pointer;text-align:left;white-space:nowrap}
+.map-view-button-title{font-size:11px;font-weight:700;line-height:1.2}
+.map-view-button-note{color:#8aa093;font-size:9px;font-style:normal;font-weight:500;line-height:1.2}
 .map-view-button:hover{background:#f6faf4}
 .map-view-button[aria-pressed="true"]{background:#215c49;color:#fff;box-shadow:0 2px 5px #1d583226}
+.map-view-button[aria-pressed="true"] .map-view-button-note{color:#d0e3d2}
 .map-view-help{color:#718a78;font-size:11px;line-height:1.4}
 .map-error{inset:122px 0 40px}
-@media(max-width:650px){.map-view-bar{gap:8px;padding:10px 14px}.map-view-help{flex-basis:100%}.map-error{inset:148px 0 44px}}
+@media(max-width:650px){.map-view-bar{gap:8px;padding:10px 14px}.map-view-heading{flex:1 1 100%;min-width:0}.map-view-switch{width:100%}.map-view-button{flex:1;min-width:0}.map-view-help{flex-basis:100%}.map-error{inset:148px 0 44px}}
 
 /* Place the unit filter next to the map view controls. */
 .map-unit-filter{display:flex;align-items:center;gap:8px;min-width:0;margin-left:auto}
@@ -238,4 +243,3 @@ footer{max-width:1860px;padding-left:2.5%;padding-right:2.5%}
   .registry-card-actions{align-items:flex-start;flex-direction:column}
   .registry-source{text-align:left}
 }
-
