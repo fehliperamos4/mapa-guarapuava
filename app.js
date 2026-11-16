@@ -20,7 +20,6 @@ const addressResults = document.getElementById('address-results');
 const registryGrid = document.getElementById('registry-grid');
 const registryKpis = document.getElementById('registry-kpis');
 const registryCount = document.getElementById('registry-count');
-const registryMissingUnits = document.getElementById('registry-missing-units');
 let features = [];
 let map;
 let mapLayers;
@@ -30,26 +29,6 @@ let visible = [];
 let view = 'microareas';
 const coverageColors = ['#34836b', '#d98751', '#667fbe', '#c76b7d', '#a7834b', '#688d61', '#8c72a2', '#438f9c', '#c47f4a'];
 const typeNames = { microarea: 'Microárea', area_descoberta: 'Área descoberta', abrangencia: 'Área de cobertura', outro: 'Unidade / ponto' };
-
-const missingRegistryUnitNames = [
-  'ESF ADAO KAMINSKI', 'ESF BOQUEIRAO', 'ESF CAMPO VELHO', 'ESF CONCORDIA', 'ESF ENTRE RIOS',
-  'ESF ENTRE RIOS II', 'ESF GUAIRACA', 'ESF JARDIM DAS AMERICAS', 'ESF JARDIM ARAUCARIA',
-  'ESF JORDAO', 'ESF MORRO ALTO', 'ESF PALMEIRINHA', 'ESF PALMEIRINHA VOLANTE', 'ESF PAZ E BEM',
-  'ESF PLANALTO', 'ESF RESIDENCIAL 2000', 'ESF RIO DAS PEDRAS', 'ESF SANTANA', 'ESF SANTA CRUZ',
-  'ESF SAO CRISTOVAO', 'ESF SAO MIGUEL', 'ESF TANCREDO NEVES', 'ESF VILA BELA', 'ESF VILA CARLI',
-  'ESF VILA COLIBRI'
-];
-
-const registryNotes = {
-  'UBS BONSUCESSO': 'A abrangência declara 2 áreas descobertas e 977 pessoas. Os 2 polígonos de Adriano são uma única área descoberta, conforme esclarecido pelo responsável. Só essa área está identificável nesta cópia; a segunda área declarada não tem desenho reconhecível. A soma das microáreas (7.987) fica 66 abaixo do campo da abrangência (8.053).',
-  'UBS FEROZ': 'A abrangência registra 3.818 pessoas no total, 3.562 nas microáreas e 252 em área descoberta. A soma desses dois últimos valores é 3.814: diferença de 4 mantida conforme decisão do responsável pelo mapa. A área descoberta é informada, mas seu polígono não aparece nesta cópia.',
-  'UBS GUARÁ': 'As 5 microáreas aparecem em 27 recortes de polígonos. Aqui cada ACS e população aparecem uma única vez. A soma das microáreas é 2.536; o total registrado na abrangência é 2.553 (diferença de 17).',
-  'UBS PARQUE DAS ÁRVORES': 'A soma das 7 microáreas é 4.264; a abrangência registra 4.265 (diferença de 1). Silmara tem 392 pessoas registradas. O parâmetro de 400 pessoas não é um mínimo federal vigente.',
-  'UBS RECANTO FELIZ': 'A soma das 8 microáreas é 5.139; a abrangência registra 5.180 (diferença de 41).',
-  'UBS XARQUINHO I': 'Neste território, o rótulo “Usuários” foi interpretado como cadastrados, conforme esclarecido pelo responsável. A soma das 10 microáreas é 5.659. A abrangência registra 6.352 no total e 686 pessoas em 2 áreas descobertas; os dois desenhos dessas áreas mostram 102 + 447 = 549 (diferença de 137). Total menos descobertos informados resulta em 5.666, 7 acima da soma das microáreas.',
-  'UBS XARQUINHO II DOURADOS': 'Os 2 recortes de polígono com o mesmo nome representam uma única área descoberta. O total da abrangência (4.154) corresponde às 3.922 pessoas nas microáreas mais as 232 informadas para a área descoberta.',
-  'UBS XARQUINHO II PINHEIROS': 'A soma das 4 microáreas é 2.920; a abrangência registra 2.943 (diferença de 23).'
-};
 
 function featureColor(feature) {
   if (feature.properties.tipo !== 'abrangencia') return feature.properties.style?.color || '#82a580';
@@ -312,7 +291,7 @@ function renderRegistryCard(coverage) {
     row.append(description, countBlock);
     rows.append(row);
   }
-  if (!microareas.length) rows.append(make('li', 'registry-no-data', 'Nenhuma microárea identificada nesta cópia.'));
+  if (!microareas.length) rows.append(make('li', 'registry-no-data', 'Nenhuma microárea identificada.'));
   microareaSection.append(rows);
   body.append(microareaSection);
 
@@ -338,12 +317,6 @@ function renderRegistryCard(coverage) {
     discoveredSection.append(uncoveredList);
   }
   if (!discoveredAreaCount) discoveredSection.append(make('p', 'registry-no-data', 'A abrangência registra zero áreas descobertas.'));
-  else if (discoveredAreaCount > uncoveredAreas.length) {
-    const missingGeometryCount = discoveredAreaCount - uncoveredAreas.length;
-    discoveredSection.append(make('p', 'registry-missing-shape', `${missingGeometryCount} ${missingGeometryCount === 1 ? 'área declarada não tem' : 'áreas declaradas não têm'} um polígono identificável nesta cópia.`));
-  } else if (!uncoveredAreas.length) {
-    discoveredSection.append(make('p', 'registry-missing-shape', 'A abrangência informa a área descoberta, mas o desenho não aparece nesta cópia.'));
-  }
   body.append(discoveredSection);
 
   const actions = make('div', 'registry-card-actions');
@@ -355,7 +328,7 @@ function renderRegistryCard(coverage) {
     render();
     document.querySelector('.workspace').scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
-  actions.append(locate, make('span', 'registry-source', 'Fonte: cópia do My Maps · 15/11/2026'));
+  actions.append(locate, make('span', 'registry-source', 'Dados registrados em 15/11/2026'));
   body.append(actions);
   card.append(body);
   return { card, microareas, discoveredAreaCount };
@@ -429,7 +402,7 @@ function showGeneral(unit) {
   const candidates = features.filter(f => f.properties.ubs === unit && ['abrangencia', 'outro'].includes(f.properties.tipo) && descriptionText(f.properties.description));
   const general = candidates.find(f => f.properties.tipo === 'abrangencia') || candidates[0];
   details.append(make('div', 'detail-label', 'Informações registradas'));
-  details.append(make('p', 'detail-description', general ? descriptionText(general.properties.description) : 'Não há informações gerais identificadas para esta UBS nesta cópia do mapa.'));
+  details.append(make('p', 'detail-description', general ? descriptionText(general.properties.description) : 'Não há informações gerais identificadas para esta UBS.'));
   if (general) {
     details.append(make('div', 'detail-label', 'Fonte no mapa'));
     details.append(make('p', 'detail-description', general.properties.name));
