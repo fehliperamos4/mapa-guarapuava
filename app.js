@@ -17,6 +17,10 @@ const addressInput = document.getElementById('address-query');
 const addressButton = document.getElementById('address-submit');
 const addressStatus = document.getElementById('address-status');
 const addressResults = document.getElementById('address-results');
+const registryGrid = document.getElementById('registry-grid');
+const registryKpis = document.getElementById('registry-kpis');
+const registryCount = document.getElementById('registry-count');
+const registryMissingUnits = document.getElementById('registry-missing-units');
 let features = [];
 let map;
 let mapLayers;
@@ -25,7 +29,27 @@ let selectedIndex = null;
 let visible = [];
 let view = 'microareas';
 const coverageColors = ['#34836b', '#d98751', '#667fbe', '#c76b7d', '#a7834b', '#688d61', '#8c72a2', '#438f9c', '#c47f4a'];
-const typeNames = { microarea: 'Microárea', abrangencia: 'Área de cobertura', outro: 'Unidade / ponto' };
+const typeNames = { microarea: 'Microárea', area_descoberta: 'Área descoberta', abrangencia: 'Área de cobertura', outro: 'Unidade / ponto' };
+
+const missingRegistryUnitNames = [
+  'ESF ADAO KAMINSKI', 'ESF BOQUEIRAO', 'ESF CAMPO VELHO', 'ESF CONCORDIA', 'ESF ENTRE RIOS',
+  'ESF ENTRE RIOS II', 'ESF GUAIRACA', 'ESF JARDIM DAS AMERICAS', 'ESF JARDIM ARAUCARIA',
+  'ESF JORDAO', 'ESF MORRO ALTO', 'ESF PALMEIRINHA', 'ESF PALMEIRINHA VOLANTE', 'ESF PAZ E BEM',
+  'ESF PLANALTO', 'ESF RESIDENCIAL 2000', 'ESF RIO DAS PEDRAS', 'ESF SANTANA', 'ESF SANTA CRUZ',
+  'ESF SAO CRISTOVAO', 'ESF SAO MIGUEL', 'ESF TANCREDO NEVES', 'ESF VILA BELA', 'ESF VILA CARLI',
+  'ESF VILA COLIBRI'
+];
+
+const registryNotes = {
+  'UBS BONSUCESSO': 'A abrangência declara 2 áreas descobertas e 977 pessoas. Os 2 polígonos de Adriano são uma única área descoberta, conforme esclarecido pelo responsável. Só essa área está identificável nesta cópia; a segunda área declarada não tem desenho reconhecível. A soma das microáreas (7.987) fica 66 abaixo do campo da abrangência (8.053).',
+  'UBS FEROZ': 'A abrangência registra 3.818 pessoas no total, 3.562 nas microáreas e 252 em área descoberta. A soma desses dois últimos valores é 3.814: diferença de 4 mantida conforme decisão do responsável pelo mapa. A área descoberta é informada, mas seu polígono não aparece nesta cópia.',
+  'UBS GUARÁ': 'As 5 microáreas aparecem em 27 recortes de polígonos. Aqui cada ACS e população aparecem uma única vez. A soma das microáreas é 2.536; o total registrado na abrangência é 2.553 (diferença de 17).',
+  'UBS PARQUE DAS ÁRVORES': 'A soma das 7 microáreas é 4.264; a abrangência registra 4.265 (diferença de 1). Silmara tem 392 pessoas registradas. O parâmetro de 400 pessoas não é um mínimo federal vigente.',
+  'UBS RECANTO FELIZ': 'A soma das 8 microáreas é 5.139; a abrangência registra 5.180 (diferença de 41).',
+  'UBS XARQUINHO I': 'Neste território, o rótulo “Usuários” foi interpretado como cadastrados, conforme esclarecido pelo responsável. A soma das 10 microáreas é 5.659. A abrangência registra 6.352 no total e 686 pessoas em 2 áreas descobertas; os dois desenhos dessas áreas mostram 102 + 447 = 549 (diferença de 137). Total menos descobertos informados resulta em 5.666, 7 acima da soma das microáreas.',
+  'UBS XARQUINHO II DOURADOS': 'Os 2 recortes de polígono com o mesmo nome representam uma única área descoberta. O total da abrangência (4.154) corresponde às 3.922 pessoas nas microáreas mais as 232 informadas para a área descoberta.',
+  'UBS XARQUINHO II PINHEIROS': 'A soma das 4 microáreas é 2.920; a abrangência registra 2.943 (diferença de 23).'
+};
 
 function featureColor(feature) {
   if (feature.properties.tipo !== 'abrangencia') return feature.properties.style?.color || '#82a580';
@@ -147,6 +171,234 @@ function descriptionText(html) {
   parsed.querySelectorAll('p,div,li,tr').forEach(el => el.append('\n'));
   parsed.querySelectorAll('td,th').forEach(el => el.append(' '));
   return parsed.body.textContent.replace(/\u00a0/g, ' ').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+}
+
+function normalizeRegistryFeatureTypes() {
+  for (const feature of features) {
+    const p = feature.properties;
+    const name = (p.name || '').toLocaleUpperCase('pt-BR');
+    if (name.startsWith('ÁREA DESCOBERTA') || (p.ubs === 'UBS BONSUCESSO' && name.includes('ADRIANO'))) {
+      p.tipo = 'area_descoberta';
+    }
+    // The Guará point was associated with a duplicated label in the JSON.
+    if (p.ubs === 'UBS GUARÁ - UBS GUARÁ' && name.includes('ESF GUARÁ')) p.ubs = 'UBS GUARÁ';
+  }
+}
+
+function registryFields(description) {
+  const sections = { total: {}, covered: {}, uncovered: {}, domiciles: {} };
+  let current = 'total';
+  const normalize = value => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleUpperCase('pt-BR');
+  for (const line of descriptionText(description).split('\n')) {
+    const normalized = normalize(line.trim());
+    if (normalized.includes('MICROAREAS COBERTAS')) { current = 'covered'; continue; }
+    if (normalized.includes('AREAS DESCOBERTAS')) { current = 'uncovered'; continue; }
+    if (normalized.includes('DOMICILIOS')) { current = 'domiciles'; continue; }
+    if (normalized.includes('TOTAL DA UBS')) { current = 'total'; continue; }
+    const separator = line.indexOf(':');
+    if (separator < 0) continue;
+    const label = normalize(line.slice(0, separator).trim());
+    const value = line.slice(separator + 1).trim();
+    if (label) sections[current][label] = value;
+  }
+  return sections;
+}
+
+function registryNumber(value) {
+  if (value == null || !String(value).trim() || /NAO INFORMADO/i.test(value)) return null;
+  const digits = String(value).trim().replace(/[^\d]/g, '');
+  return digits ? Number(digits) : null;
+}
+
+function registryValue(section, labels) {
+  for (const label of labels) {
+    const value = section[label];
+    if (value != null) return value;
+  }
+  return null;
+}
+
+function formatRegistryNumber(value) {
+  return value == null ? 'Não informado' : new Intl.NumberFormat('pt-BR').format(value);
+}
+
+function featureRegistryInfo(feature) {
+  const p = feature.properties;
+  const sections = registryFields(p.description);
+  const population = registryNumber(registryValue(sections.total, ['CADASTRADOS', 'USUARIOS']));
+  const number = registryValue(sections.total, ['MICROAREA']);
+  const name = (p.name || 'ACS não identificado').replace(/\s+-\s+PARTE\s+\d+\s+-\s+UBS\s+.+$/i, '').replace(/\s+-\s+UBS\s+.+$/i, '').trim();
+  return { feature, sections, population, number: number == null ? '' : number.trim(), name };
+}
+
+function logicalFeatureGroups(items, discovered = false) {
+  const groups = new Map();
+  for (const feature of items) {
+    const info = featureRegistryInfo(feature);
+    const p = feature.properties;
+    let logicalName = (p.name || '').replace(/\s+-\s+PARTE\s+\d+(?=\s+-\s+UBS\b)/i, '').trim();
+    const key = discovered
+      ? `${p.ubs}|${logicalName}`
+      : `${p.ubs}|${logicalName}|${info.number}|${info.population}`;
+    if (!groups.has(key)) groups.set(key, { ...info, features: [] });
+    groups.get(key).features.push(feature);
+  }
+  return [...groups.values()];
+}
+
+function appendRegistryStat(container, label, value, className = '') {
+  const stat = make('div', `registry-stat ${className}`.trim());
+  stat.append(make('span', 'registry-stat-label', label), make('strong', 'registry-stat-value', value));
+  container.append(stat);
+}
+
+function renderRegistryCard(coverage) {
+  const unit = coverage.properties.ubs || coverage.properties.name || 'Unidade sem nome';
+  const sections = registryFields(coverage.properties.description);
+  const totalPopulation = registryNumber(registryValue(sections.total, ['CADASTRADOS', 'USUARIOS']));
+  const declaredMicroareas = registryNumber(registryValue(sections.covered, ['MICROAREAS']));
+  const declaredCovered = registryNumber(registryValue(sections.covered, ['CADASTRADOS', 'USUARIOS']));
+  const declaredDiscoveredAreas = registryNumber(registryValue(sections.uncovered, ['AREAS']));
+  const declaredDiscoveredPopulation = registryNumber(registryValue(sections.uncovered, ['CADASTRADOS', 'USUARIOS']));
+  const records = features.filter(feature => feature.properties.ubs === unit && feature.properties.tipo === 'microarea');
+  const uncoveredFeatures = features.filter(feature => feature.properties.ubs === unit && feature.properties.tipo === 'area_descoberta');
+  const microareas = logicalFeatureGroups(records).sort((a, b) => {
+    const numberA = Number(a.number.replace(/\D/g, '')) || Number.MAX_SAFE_INTEGER;
+    const numberB = Number(b.number.replace(/\D/g, '')) || Number.MAX_SAFE_INTEGER;
+    return numberA - numberB || a.name.localeCompare(b.name, 'pt-BR');
+  });
+  const uncoveredAreas = logicalFeatureGroups(uncoveredFeatures, true);
+  const registeredMicroareas = microareas.filter(area => area.population != null);
+  const coveredPopulation = registeredMicroareas.reduce((sum, area) => sum + area.population, 0);
+  const above750 = registeredMicroareas.filter(area => area.population > 750).length;
+  const atMost399 = registeredMicroareas.filter(area => area.population < 400).length;
+  const discoveredAreaCount = declaredDiscoveredAreas ?? uncoveredAreas.length;
+  const discoveredPopulation = declaredDiscoveredPopulation;
+  const expectedCovered = declaredCovered ?? (totalPopulation != null && discoveredPopulation != null
+    ? totalPopulation - discoveredPopulation
+    : discoveredAreaCount === 0 ? totalPopulation : null);
+  const difference = expectedCovered == null || registeredMicroareas.length !== microareas.length
+    ? null
+    : coveredPopulation - expectedCovered;
+
+  const card = make('details', 'registry-card');
+  const summary = make('summary', 'registry-card-summary');
+  const title = make('div', 'registry-card-title');
+  title.append(make('h4', '', unit), make('span', 'registry-total-pill', `${formatRegistryNumber(totalPopulation)} no total da abrangência`));
+  const highlights = make('div', 'registry-card-highlights');
+  appendRegistryStat(highlights, 'Microáreas', formatRegistryNumber(microareas.length));
+  appendRegistryStat(highlights, 'Acima de 750*', String(above750));
+  appendRegistryStat(highlights, 'Áreas descobertas', String(discoveredAreaCount));
+  summary.append(title, highlights, make('span', 'registry-toggle', '＋'));
+  card.append(summary);
+
+  const body = make('div', 'registry-card-body');
+  const metrics = make('div', 'registry-card-metrics');
+  appendRegistryStat(metrics, 'Total registrado na abrangência', formatRegistryNumber(totalPopulation));
+  appendRegistryStat(metrics, 'Soma das microáreas listadas', registeredMicroareas.length === microareas.length ? formatRegistryNumber(coveredPopulation) : 'Dados incompletos');
+  appendRegistryStat(metrics, 'Pessoas em áreas descobertas', formatRegistryNumber(discoveredPopulation));
+  body.append(metrics);
+
+  if (difference != null && difference !== 0) {
+    const comparison = make('p', 'registry-difference');
+    comparison.append(make('strong', '', `Diferença de ${formatRegistryNumber(Math.abs(difference))} ${difference < 0 ? 'a menos' : 'a mais'}.`));
+    comparison.append(document.createTextNode(` A soma das microáreas (${formatRegistryNumber(coveredPopulation)}) foi comparada ao valor de referência da abrangência (${formatRegistryNumber(expectedCovered)}).`));
+    body.append(comparison);
+  } else if (difference === 0) {
+    body.append(make('p', 'registry-match', 'A soma das microáreas confere com o valor de referência registrado na abrangência.'));
+  }
+
+  if (registryNotes[unit]) body.append(make('p', 'registry-observation', registryNotes[unit]));
+
+  const microareaSection = make('section', 'registry-microareas');
+  microareaSection.append(make('h5', '', `Microáreas por ACS · ${formatRegistryNumber(microareas.length)}`));
+  const rows = make('ul', 'registry-microarea-list');
+  for (const area of microareas) {
+    const row = make('li', 'registry-microarea-row');
+    const description = make('span', 'registry-microarea-description');
+    const microareaLabel = area.number ? `Microárea ${area.number.padStart(2, '0')}` : 'Microárea';
+    description.append(make('strong', '', area.name), make('span', '', microareaLabel));
+    const countBlock = make('span', 'registry-microarea-count');
+    countBlock.append(make('strong', '', formatRegistryNumber(area.population)));
+    countBlock.append(make('span', '', 'cadastrados'));
+    if (area.population > 750) countBlock.append(make('em', 'registry-alert-chip', 'Acima de 750*'));
+    row.append(description, countBlock);
+    rows.append(row);
+  }
+  if (!microareas.length) rows.append(make('li', 'registry-no-data', 'Nenhuma microárea identificada nesta cópia.'));
+  microareaSection.append(rows);
+  body.append(microareaSection);
+
+  const discoveredSection = make('section', 'registry-discovered');
+  const discoveredHeading = make('div', 'registry-discovered-heading');
+  discoveredHeading.append(make('h5', '', 'Áreas descobertas'), make('span', '', `${discoveredAreaCount} ${discoveredAreaCount === 1 ? 'área' : 'áreas'} · ${formatRegistryNumber(discoveredPopulation)} pessoas`));
+  discoveredSection.append(discoveredHeading);
+  if (uncoveredAreas.length) {
+    const uncoveredList = make('ul', 'registry-uncovered-list');
+    for (const area of uncoveredAreas) {
+      const uncoveredName = area.feature.properties.ubs === 'UBS BONSUCESSO' && area.name.includes('ADRIANO')
+        ? 'Área de Adriano'
+        : area.name.replace(/^ÁREA DESCOBERTA\s*-?\s*/i, '').replace(/\s+-\s+UBS\s+.+$/i, '').trim() || 'Área descoberta identificada';
+      const item = make('li', 'registry-uncovered-row');
+      const pieceCount = area.features.length;
+      const geometryText = pieceCount > 1 ? `${pieceCount} recortes do mesmo território` : '1 desenho identificado';
+      const populationText = area.population == null ? 'Contagem não informada neste desenho' : `${formatRegistryNumber(area.population)} pessoas no desenho`;
+      item.append(make('strong', '', uncoveredName), make('span', '', `${geometryText} · ${populationText}`));
+      uncoveredList.append(item);
+    }
+    discoveredSection.append(uncoveredList);
+  }
+  if (!discoveredAreaCount) discoveredSection.append(make('p', 'registry-no-data', 'A abrangência registra zero áreas descobertas.'));
+  else if (discoveredAreaCount > uncoveredAreas.length) {
+    const missingGeometryCount = discoveredAreaCount - uncoveredAreas.length;
+    discoveredSection.append(make('p', 'registry-missing-shape', `${missingGeometryCount} ${missingGeometryCount === 1 ? 'área declarada não tem' : 'áreas declaradas não têm'} um polígono identificável nesta cópia.`));
+  } else if (!uncoveredAreas.length) {
+    discoveredSection.append(make('p', 'registry-missing-shape', 'A abrangência informa a área descoberta, mas o desenho não aparece nesta cópia.'));
+  }
+  body.append(discoveredSection);
+
+  const actions = make('div', 'registry-card-actions');
+  const locate = make('button', 'registry-map-button', 'Ver esta unidade no mapa ↗');
+  locate.type = 'button';
+  locate.addEventListener('click', () => {
+    select.value = unit;
+    view = 'microareas';
+    render();
+    document.querySelector('.workspace').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+  actions.append(locate, make('span', 'registry-source', 'Fonte: cópia do My Maps · 15/11/2026'));
+  body.append(actions);
+  card.append(body);
+  return { card, microareas, above750, atMost399 };
+}
+
+function renderRegistry() {
+  if (!registryGrid || !registryKpis) return;
+  const coverages = features.filter(feature => feature.properties.tipo === 'abrangencia')
+    .sort((a, b) => (a.properties.ubs || '').localeCompare(b.properties.ubs || '', 'pt-BR'));
+  registryGrid.replaceChildren();
+  const cards = coverages.map(renderRegistryCard);
+  for (const result of cards) registryGrid.append(result.card);
+  const totalMicroareas = cards.reduce((sum, result) => sum + result.microareas.length, 0);
+  const totalAbove750 = cards.reduce((sum, result) => sum + result.above750, 0);
+  const totalAtMost399 = cards.reduce((sum, result) => sum + result.atMost399, 0);
+  registryKpis.replaceChildren();
+  const kpis = [
+    ['Áreas de cobertura', String(coverages.length), 'territórios representados nesta cópia'],
+    ['Microáreas cobertas', String(totalMicroareas), 'registros únicos por ACS, sem repetir recortes'],
+    ['Acima de 750 pessoas', String(totalAbove750), 'referência contextual da PNAB*'],
+    ['Abaixo de 400 pessoas', String(totalAtMost399), '400 não é mínimo federal vigente']
+  ];
+  for (const [label, value, note] of kpis) {
+    const item = make('article', 'registry-kpi');
+    item.append(make('span', 'registry-kpi-label', label), make('strong', 'registry-kpi-value', value), make('span', 'registry-kpi-note', note));
+    registryKpis.append(item);
+  }
+  if (registryCount) registryCount.textContent = `${coverages.length} territórios · ${totalMicroareas} microáreas únicas`;
+  if (registryMissingUnits) {
+    registryMissingUnits.replaceChildren();
+    for (const name of missingRegistryUnitNames) registryMissingUnits.append(make('li', '', name));
+  }
 }
 
 function showDetail(feature) {
@@ -299,6 +551,8 @@ async function start() {
     if (!response.ok) throw new Error('Falha ao carregar os dados');
     const data = await response.json();
     features = data.features || [];
+    normalizeRegistryFeatureTypes();
+    renderRegistry();
     const units = [...new Set(features.map(f => f.properties.ubs).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
     for (const unit of units) { const option = make('option', '', unit); option.value = unit; select.append(option); }
     if (typeof L !== 'undefined') {
@@ -320,8 +574,10 @@ async function start() {
     render();
   } catch (error) {
     list.replaceChildren(make('p', 'empty', 'Não foi possível carregar as áreas. Tente novamente.'));
+    if (registryGrid) registryGrid.replaceChildren(make('p', 'registry-loading', 'Não foi possível carregar os dados das unidades.'));
     document.getElementById('map-error').hidden = false;
     console.error(error);
   }
 }
 start();
+
